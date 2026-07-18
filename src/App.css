@@ -43,6 +43,65 @@
     inset 0 0 0 1px rgba(153, 238, 255, 0.08);
 }
 
+.battle-hud {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  right: 0.8rem;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.meter {
+  background: rgba(4, 12, 26, 0.6);
+  border: 1px solid rgba(151, 191, 218, 0.26);
+  border-radius: 9px;
+  padding: 0.42rem 0.52rem 0.5rem;
+}
+
+.meter span {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.55s ease;
+}
+
+.defender-meter .track i {
+  background: linear-gradient(90deg, #3fd7a3, #8ef6bd);
+}
+
+.attacker-meter .track i {
+  background: linear-gradient(90deg, #f15488, #ff95b7);
+}
+
+.round {
+  border: 1px solid rgba(180, 208, 232, 0.3);
+  border-radius: 999px;
+  padding: 0.26rem 0.7rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: rgba(6, 17, 34, 0.72);
+}
+
 .atmosphere {
   position: absolute;
   inset: 0;
@@ -64,6 +123,7 @@
   transform: translateY(-50%);
   width: 118px;
   height: 118px;
+  transition: filter 0.35s ease, opacity 0.35s ease;
 }
 
 .defender {
@@ -131,6 +191,15 @@
   background: radial-gradient(circle, #ff9bbc 0%, #ff4d84 42%, #5a1832 100%);
 }
 
+.node.compromised {
+  filter: saturate(1.4) brightness(1.15);
+}
+
+.node.defeated {
+  opacity: 0.45;
+  filter: grayscale(0.3);
+}
+
 .beam {
   position: absolute;
   left: 20%;
@@ -185,6 +254,34 @@
   mix-blend-mode: soft-light;
   opacity: 0.55;
   pointer-events: none;
+}
+
+.battle-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  transform: translateX(-50%);
+  min-width: min(92%, 540px);
+  border: 1px solid rgba(173, 208, 235, 0.28);
+  border-radius: 11px;
+  padding: 0.56rem 0.85rem;
+  text-align: center;
+  background: rgba(7, 16, 31, 0.72);
+  z-index: 5;
+}
+
+.battle-banner strong {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #bde3ff;
+}
+
+.battle-banner p {
+  margin-top: 0.25rem;
+  color: #dde9f5;
+  font-size: 0.9rem;
 }
 
 .battle-notes {
@@ -274,5 +371,26 @@
   .packet {
     width: 9px;
     height: 9px;
+  }
+
+  .battle-hud {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .round {
+    justify-self: center;
+  }
+
+  .battle-banner {
+    bottom: 0.5rem;
+    padding: 0.48rem 0.65rem;
+  }
+
+  .battle-banner p {
+    font-size: 0.79rem;
   }
 }
