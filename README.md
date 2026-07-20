@@ -1,6 +1,6 @@
 # Cyber Battle Animation
 
-Animated cyber battle scene built with React, TypeScript, and Vite.
+Interactive cyber battle scene built with React, TypeScript, and Vite.
 
 ## Run locally
 
@@ -15,6 +15,12 @@ Animated cyber battle scene built with React, TypeScript, and Vite.
 3. Build for production:
 
    npm run build
+
+## v1.1 features
+
+- Interactive offense, defense, and upgrade controls
+- Level progression and scoring
+- More dynamic battle feedback
 
 ## Why this is not animated in GitHub mobile app
 
