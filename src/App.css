@@ -5,6 +5,13 @@
   box-sizing: border-box;
 }
 
+.battle-page.kid-mode {
+  --kid-blue: #7dd3fc;
+  --kid-green: #86efac;
+  --kid-yellow: #fde68a;
+  --kid-pink: #f9a8d4;
+}
+
 .battle-header {
   text-align: center;
   margin-bottom: 1.1rem;
@@ -40,7 +47,7 @@
 .control-panel button {
   border: 1px solid rgba(151, 191, 218, 0.26);
   border-radius: 12px;
-  background: rgba(9, 18, 34, 0.86);
+  background: linear-gradient(180deg, rgba(19, 42, 71, 0.96), rgba(8, 18, 35, 0.96));
   color: #eef7ff;
   padding: 0.85rem 1rem;
   font: inherit;
@@ -101,6 +108,14 @@
   box-shadow:
     0 30px 70px rgba(2, 7, 20, 0.56),
     inset 0 0 0 1px rgba(153, 238, 255, 0.08);
+}
+
+.kid-arena {
+  border-color: rgba(125, 211, 252, 0.45);
+  background:
+    radial-gradient(circle at 25% 30%, rgba(125, 211, 252, 0.35), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(249, 168, 212, 0.28), transparent 42%),
+    linear-gradient(155deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
 }
 
 .battle-hud {
@@ -173,6 +188,19 @@
   background-size: 50px 50px;
   animation: drift 14s linear infinite;
   opacity: 0.45;
+}
+
+.sparkles {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(253, 230, 138, 0.95) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(125, 211, 252, 0.95) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(249, 168, 212, 0.95) 0 2px, transparent 3px);
+  background-size: 120px 120px, 180px 180px, 210px 210px;
+  background-position: 0 0, 40px 20px, 80px 60px;
+  opacity: 0.28;
+  animation: sparkleDrift 18s linear infinite;
 }
 
 .node {
@@ -419,6 +447,15 @@
   }
   100% {
     transform: translate3d(-50px, -50px, 0);
+  }
+}
+
+@keyframes sparkleDrift {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-30px);
   }
 }
 

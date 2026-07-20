@@ -1,6 +1,6 @@
-# Cyber Battle Animation
+# Cyber Helpers
 
-Interactive cyber battle scene built with React, TypeScript, and Vite.
+A friendly, kid-safe cyber adventure built with React, TypeScript, and Vite.
 
 ## Run locally
 
@@ -16,11 +16,12 @@ Interactive cyber battle scene built with React, TypeScript, and Vite.
 
    npm run build
 
-## v1.1 features
+## v2 features
 
-- Interactive offense, defense, and upgrade controls
-- Level progression and scoring
-- More dynamic battle feedback
+- Protect, Boost, and Scan buttons
+- Friendly theme for younger kids
+- Simple stars and levels
+- Positive feedback and easy gameplay
 
 ## Why this is not animated in GitHub mobile app
 

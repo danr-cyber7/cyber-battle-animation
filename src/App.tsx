@@ -6,26 +6,26 @@ type Packet = {
   style: React.CSSProperties
 }
 
-type Winner = 'defender' | 'attacker' | null
+type Winner = 'team' | 'glitch' | null
 
-type Phase = 'probing' | 'firewall-hold' | 'breach-attempt' | 'counterstrike' | 'systems-upgrade'
+type Phase = 'ready' | 'protecting' | 'boosting' | 'scanning' | 'celebration'
 
-type ActionType = 'attack' | 'defend' | 'upgrade'
+type ActionType = 'protect' | 'boost' | 'scan'
 
-type BattleState = {
-  defender: number
-  attacker: number
+type GameState = {
+  teamShield: number
+  glitchMeter: number
   winner: Winner
   phase: Phase
   round: number
   level: number
-  score: number
-  defense: number
-  offense: number
-  log: string
+  stars: number
+  shield: number
+  boost: number
+  message: string
 }
 
-const MAX_HEALTH = 100
+const MAX_VALUE = 100
 const MAX_SKILL = 10
 const MAX_LEVEL = 10
 
@@ -33,198 +33,196 @@ const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
 const makePackets = (intensity: number): Packet[] =>
-  Array.from({ length: 14 }, (_, index) => {
-    const drift = ((index % 5) - 2) * 18
-    const delay = `${index * 0.28}s`
-    const duration = `${3.5 + (index % 4) * 0.45}s`
-    const lane = `${20 + (index % 6) * 12}%`
+  Array.from({ length: 12 }, (_, index) => {
+    const drift = ((index % 5) - 2) * 14 * intensity
+    const delay = `${index * 0.3}s`
+    const duration = `${3.2 + (index % 4) * 0.5}s`
+    const lane = `${18 + (index % 6) * 12}%`
 
     return {
       id: index,
       style: {
         '--delay': delay,
         '--duration': duration,
-        '--drift': `${drift * intensity}px`,
+        '--drift': `${drift}px`,
         '--lane': lane,
       } as React.CSSProperties,
     }
   })
 
-const initialBattleState: BattleState = {
-  defender: MAX_HEALTH,
-  attacker: MAX_HEALTH,
+const initialGameState: GameState = {
+  teamShield: MAX_VALUE,
+  glitchMeter: MAX_VALUE,
   winner: null,
-  phase: 'probing',
+  phase: 'ready',
   round: 1,
   level: 1,
-  score: 0,
-  defense: 5,
-  offense: 5,
-  log: 'Choose an action to begin the battle.',
+  stars: 0,
+  shield: 5,
+  boost: 5,
+  message: 'Tap Protect, Boost, or Scan to help the Cyber Team.',
 }
 
 function App() {
-  const [battle, setBattle] = useState<BattleState>(initialBattleState)
+  const [game, setGame] = useState<GameState>(initialGameState)
 
   const packets = useMemo(
-    () => makePackets(0.6 + battle.level * 0.06),
-    [battle.level],
+    () => makePackets(0.45 + game.level * 0.04),
+    [game.level],
   )
 
-  const applyAction = (action: ActionType) => {
-    setBattle((current) => {
+  const doAction = (action: ActionType) => {
+    setGame((current) => {
       if (current.winner) {
         return current
       }
 
-      const offenseBoost = current.offense * 1.8
-      const defenseBoost = current.defense * 1.8
       const levelBonus = current.level - 1
+      let nextTeamShield = current.teamShield
+      let nextGlitchMeter = current.glitchMeter
+      let nextShield = current.shield
+      let nextBoost = current.boost
+      let nextStars = current.stars
+      let nextPhase: Phase = 'ready'
+      let nextMessage = current.message
 
-      let nextDefender = current.defender
-      let nextAttacker = current.attacker
-      let nextScore = current.score
-      let nextPhase: Phase = 'probing'
-      let nextLog = current.log
-      let nextDefense = current.defense
-      let nextOffense = current.offense
-
-      if (action === 'attack') {
-        const attackPower = 12 + offenseBoost + levelBonus * 2 + Math.floor(Math.random() * 8)
-        const counterDamage = 6 + current.defense + Math.floor(Math.random() * 6)
-        nextAttacker = clamp(current.attacker - counterDamage, 0, MAX_HEALTH)
-        nextDefender = clamp(current.defender - attackPower, 0, MAX_HEALTH)
-        nextScore += Math.round(attackPower * 1.1)
-        nextPhase = nextDefender < nextAttacker ? 'breach-attempt' : 'counterstrike'
-        nextLog = `Offense launched a breach attempt for ${Math.round(attackPower)} damage.`
+      if (action === 'protect') {
+        const block = 14 + current.shield * 2 + Math.floor(Math.random() * 6)
+        const glitch = 6 + levelBonus + Math.floor(Math.random() * 6)
+        nextTeamShield = clamp(current.teamShield + Math.floor(block / 3), 0, MAX_VALUE)
+        nextGlitchMeter = clamp(current.glitchMeter - Math.max(0, glitch - block), 0, MAX_VALUE)
+        nextStars += 8 + Math.floor(block / 5)
+        nextPhase = 'protecting'
+        nextMessage = 'Great shield! You protected the team.'
       }
 
-      if (action === 'defend') {
-        const block = 14 + defenseBoost + Math.floor(Math.random() * 7)
-        const incoming = 10 + levelBonus + Math.floor(Math.random() * 7)
-        nextDefender = clamp(current.defender - Math.max(0, incoming - block), 0, MAX_HEALTH)
-        nextAttacker = clamp(current.attacker - Math.floor(block / 2), 0, MAX_HEALTH)
-        nextScore += Math.round(block * 0.8)
-        nextPhase = 'firewall-hold'
-        nextLog = `Defense reinforced the firewall and blocked ${Math.round(block)} threat.`
+      if (action === 'boost') {
+        nextShield = clamp(current.shield + 1, 1, MAX_SKILL)
+        nextBoost = clamp(current.boost + 1, 1, MAX_SKILL)
+        nextTeamShield = clamp(current.teamShield + 10, 0, MAX_VALUE)
+        nextStars += 12
+        nextPhase = 'boosting'
+        nextMessage = 'Nice boost! Your team got stronger.'
       }
 
-      if (action === 'upgrade') {
-        nextDefense = clamp(current.defense + 1, 1, MAX_SKILL)
-        nextOffense = clamp(current.offense + 1, 1, MAX_SKILL)
-        nextScore += 25
-        nextPhase = 'systems-upgrade'
-        nextLog = 'Systems upgraded. Offense and defense increased by 1.'
-        nextDefender = clamp(current.defender + 8, 0, MAX_HEALTH)
+      if (action === 'scan') {
+        const scanHelp = 10 + current.boost * 2 + Math.floor(Math.random() * 7)
+        const counter = 5 + levelBonus + Math.floor(Math.random() * 5)
+        nextGlitchMeter = clamp(current.glitchMeter - scanHelp, 0, MAX_VALUE)
+        nextTeamShield = clamp(current.teamShield - Math.max(0, counter - current.shield), 0, MAX_VALUE)
+        nextStars += 15 + Math.floor(scanHelp / 6)
+        nextPhase = 'scanning'
+        nextMessage = 'Awesome scan! You found the glitch spots.'
       }
 
-      const threshold = current.level * 120
-      const leveledUp = nextScore >= threshold && current.level < MAX_LEVEL
+      const threshold = current.level * 90
+      const leveledUp = nextStars >= threshold && current.level < MAX_LEVEL
       const nextLevel = leveledUp ? current.level + 1 : current.level
-      const adjustedScore = leveledUp ? nextScore + 40 : nextScore
+      const adjustedStars = leveledUp ? nextStars + 25 : nextStars
 
       let winner: Winner = null
-      if (nextDefender <= 0 || nextAttacker <= 0) {
-        winner = nextDefender > nextAttacker ? 'defender' : 'attacker'
-        nextLog =
-          winner === 'defender'
-            ? 'Defense Core neutralized the hostile swarm.'
-            : 'Botnet Hive breached the perimeter.'
+      if (nextTeamShield <= 0 || nextGlitchMeter <= 0) {
+        winner = nextTeamShield > nextGlitchMeter ? 'team' : 'glitch'
+        nextMessage =
+          winner === 'team'
+            ? 'Hooray! The Cyber Team kept the system safe.'
+            : 'Oops! The glitches won this round.'
+        nextPhase = 'celebration'
       }
 
       return {
         ...current,
-        defender: nextDefender,
-        attacker: nextAttacker,
+        teamShield: nextTeamShield,
+        glitchMeter: nextGlitchMeter,
         winner,
         phase: nextPhase,
         round: current.round + 1,
         level: nextLevel,
-        score: adjustedScore,
-        defense: nextDefense,
-        offense: nextOffense,
-        log: nextLog,
+        stars: adjustedStars,
+        shield: nextShield,
+        boost: nextBoost,
+        message: nextMessage,
       }
     })
   }
 
-  const resetBattle = () => setBattle(initialBattleState)
+  const resetGame = () => setGame(initialGameState)
+  const progress = ((game.stars % 90) / 90) * 100
+  const teamLow = game.teamShield <= 34
+  const glitchLow = game.glitchMeter <= 34
 
-  const defenderCompromised = battle.defender <= 34
-  const attackerCompromised = battle.attacker <= 34
-  const levelProgress = ((battle.score % 120) / 120) * 100
-
-  const statusText = battle.winner
-    ? battle.winner === 'defender'
-      ? 'Defense Core neutralized the botnet wave.'
-      : 'Botnet Hive breached the perimeter.'
-    : battle.phase === 'firewall-hold'
-      ? 'Defense Core is forcing the swarm backward.'
-      : battle.phase === 'breach-attempt'
-        ? 'Critical exchange detected. Countermeasures unstable.'
-        : battle.phase === 'systems-upgrade'
-          ? 'Upgrade complete. Systems are recalibrating.'
-          : 'Botnet probes are searching for weak points.'
+  const statusText = game.winner
+    ? game.winner === 'team'
+      ? 'The Cyber Team won the round!'
+      : 'The glitch meter ran out first.'
+    : game.phase === 'boosting'
+      ? 'Boost power is ready!'
+      : game.phase === 'scanning'
+        ? 'Scan found new helper spots!'
+        : game.phase === 'protecting'
+          ? 'A strong shield is holding steady!'
+          : 'Pick a button to help the team.'
 
   return (
-    <main className="battle-page">
+    <main className="battle-page kid-mode">
       <header className="battle-header">
-        <p className="eyebrow">Interactive Realtime Simulation</p>
-        <h1>Cyber Battle Animation</h1>
+        <p className="eyebrow">Friendly Cyber Adventure</p>
+        <h1>Cyber Helpers</h1>
         <p className="subtitle">
-          Choose offense, defense, or upgrades to shape the battle. Score points,
-          climb levels, and keep the firewall alive.
+          Help the team with Protect, Boost, and Scan. Collect stars, level up,
+          and keep the system happy.
         </p>
       </header>
 
-      <section className="control-panel" aria-label="Battle controls">
-        <button type="button" onClick={() => applyAction('attack')}>Offense</button>
-        <button type="button" onClick={() => applyAction('defend')}>Defense</button>
-        <button type="button" onClick={() => applyAction('upgrade')}>Upgrade</button>
-        <button type="button" className="secondary" onClick={resetBattle}>Reset</button>
+      <section className="control-panel" aria-label="Game controls">
+        <button type="button" onClick={() => doAction('protect')}>Protect</button>
+        <button type="button" onClick={() => doAction('boost')}>Boost</button>
+        <button type="button" onClick={() => doAction('scan')}>Scan</button>
+        <button type="button" className="secondary" onClick={resetGame}>Reset</button>
       </section>
 
-      <section className="stats-row" aria-label="Battle stats">
+      <section className="stats-row" aria-label="Game stats">
         <div className="stat-card">
           <span>Level</span>
-          <strong>{battle.level}</strong>
+          <strong>{game.level}</strong>
         </div>
         <div className="stat-card">
-          <span>Score</span>
-          <strong>{battle.score}</strong>
+          <span>Stars</span>
+          <strong>{game.stars}</strong>
         </div>
         <div className="stat-card wide">
           <span>Level progress</span>
           <div className="track">
-            <i style={{ width: `${levelProgress}%` }}></i>
+            <i style={{ width: `${progress}%` }}></i>
           </div>
         </div>
       </section>
 
-      <section className="arena" aria-label="Animated cyber battle scene">
+      <section className="arena kid-arena" aria-label="Friendly cyber scene">
         <div className="atmosphere" aria-hidden="true"></div>
+        <div className="sparkles" aria-hidden="true"></div>
 
         <div className="battle-hud" role="status" aria-live="polite">
           <div className="meter defender-meter">
-            <span>Defense {battle.defender}%</span>
+            <span>Team Shield {game.teamShield}%</span>
             <div className="track">
-              <i style={{ width: `${battle.defender}%` }}></i>
+              <i style={{ width: `${game.teamShield}%` }}></i>
             </div>
           </div>
-          <div className="round">Round {battle.round}</div>
+          <div className="round">Round {game.round}</div>
           <div className="meter attacker-meter">
-            <span>Botnet {battle.attacker}%</span>
+            <span>Glitch Meter {game.glitchMeter}%</span>
             <div className="track">
-              <i style={{ width: `${battle.attacker}%` }}></i>
+              <i style={{ width: `${game.glitchMeter}%` }}></i>
             </div>
           </div>
         </div>
 
         <div
-          className={`node defender ${defenderCompromised ? 'compromised' : ''} ${battle.winner === 'attacker' ? 'defeated' : ''}`}
+          className={`node defender ${teamLow ? 'compromised' : ''} ${game.winner === 'glitch' ? 'defeated' : ''}`}
         >
-          <span className="label">Defense Core</span>
-          <span className="node-meta">DEF {battle.defense}</span>
+          <span className="label">Cyber Team</span>
+          <span className="node-meta">Shield {game.shield}</span>
           <span className="ring ring-1"></span>
           <span className="ring ring-2"></span>
           <span className="ring ring-3"></span>
@@ -232,10 +230,10 @@ function App() {
         </div>
 
         <div
-          className={`node attacker ${attackerCompromised ? 'compromised' : ''} ${battle.winner === 'defender' ? 'defeated' : ''}`}
+          className={`node attacker ${glitchLow ? 'compromised' : ''} ${game.winner === 'team' ? 'defeated' : ''}`}
         >
-          <span className="label">Botnet Hive</span>
-          <span className="node-meta">ATK {battle.offense}</span>
+          <span className="label">Glitch Cloud</span>
+          <span className="node-meta">Boost {game.boost}</span>
           <span className="ring ring-1"></span>
           <span className="ring ring-2"></span>
           <span className="core"></span>
@@ -253,17 +251,17 @@ function App() {
         <div className="scanline" aria-hidden="true"></div>
 
         <div className="battle-banner" role="status" aria-live="polite">
-          <strong>{battle.phase.replace('-', ' ')}</strong>
-          <p>{statusText}</p>
-          <p className="battle-log">{battle.log}</p>
+          <strong>{statusText}</strong>
+          <p>{game.message}</p>
         </div>
       </section>
 
       <section className="battle-notes">
-        <h2>Gameplay</h2>
+        <h2>How to play</h2>
         <p>
-          Offense weakens the swarm, defense absorbs damage, upgrades improve your
-          stats, and score drives progression.
+          Press Protect, Boost, or Scan to earn stars and keep the Cyber Team
+          safe. The game is made for young kids and uses friendly words and
+          bright feedback.
         </p>
       </section>
     </main>
